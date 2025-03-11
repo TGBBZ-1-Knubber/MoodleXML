@@ -1,6 +1,5 @@
 package de.knubber.utils;
 
-import de.knubber.Main;
 import de.knubber.models.Question;
 import de.knubber.models.Quiz;
 
