@@ -18,7 +18,7 @@ public class XMLFileManager {
     private Map<String, String> filePathMap;
     private static final String DB_URL = "jdbc:postgresql://localhost:5432/xmldb";
     private static final String DB_USER = "postgres";
-    private static final String DB_PASSWORD = "admin";
+    private static final String DB_PASSWORD = "start123";
 
     public XMLFileManager() {
         JFrame frame = new JFrame("XML File Manager");
