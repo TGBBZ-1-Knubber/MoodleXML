@@ -10,12 +10,11 @@ import javax.xml.bind.annotation.XmlElement;
 @Getter
 @Setter
 @XmlAccessorType(XmlAccessType.FIELD)
-public class QuestionText {
+public class Feedback {
+
     @XmlElement(name = "text")
     private String text;
 
     @XmlElement(name = "format")
     private String format;
-
 }
-
