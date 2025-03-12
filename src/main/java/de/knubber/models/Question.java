@@ -2,11 +2,7 @@ package de.knubber.models;
 
 import lombok.Getter;
 import lombok.Setter;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.*;
 import java.util.List;
 
 @Getter
@@ -22,50 +18,21 @@ public class Question {
     @XmlElement(name = "questiontext")
     private QuestionText questionText;
 
-    @XmlElement(name = "generalfeedback")
-    private Feedback generalFeedback;
+    @XmlElement(name = "answer")
+    private List<Answer> answers;
 
-    @XmlAttribute(name = "defaultgrade")
-    private Double defaultGrade;
-
-    @XmlAttribute(name = "penalty")
-    private Double penalty;
-
-    @XmlAttribute(name = "hidden")
-    private int hidden;
-
-    @XmlAttribute(name = "idnumber")
-    private int idNumber;
-
-    @XmlAttribute(name = "single")
-    private boolean single;
-
-    @XmlAttribute(name = "shuffleanswers")
-    private boolean shuffleAnswers;
-
-    @XmlAttribute(name = "answernumbering")
-    private String answerNumbering;
-
-    @XmlAttribute(name = "showstandardinstruction")
-    private int showStandardInstruction;
+    @XmlElement(name = "subquestion")
+    private List<SubQuestion> subQuestions;
 
     @XmlElement(name = "correctfeedback")
     private Feedback correctFeedback;
 
-    @XmlElement(name = "partiallycorrectfeedback")
-    private Feedback partiallyCorrectFeedback;
-
     @XmlElement(name = "incorrectfeedback")
     private Feedback incorrectFeedback;
 
-    @XmlAttribute(name = "shownumcorrect")
-    private boolean showNumCorrect;
+    @XmlElement(name = "partiallycorrectfeedback")
+    private Feedback partiallyCorrectFeedback;
 
-    @XmlElement(name = "answer")
-    private Answer answers;
-
-    @XmlAttribute(name = "tags")
-    private Tag tags;
-
+    @XmlElement(name = "tags")
+    private Tags tags;
 }
-

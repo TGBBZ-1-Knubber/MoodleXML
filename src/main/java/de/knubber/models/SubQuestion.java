@@ -7,7 +7,10 @@ import javax.xml.bind.annotation.*;
 @Getter
 @Setter
 @XmlAccessorType(XmlAccessType.FIELD)
-public class QuestionText {
+public class SubQuestion {
     @XmlElement(name = "text")
     private String text;
+
+    @XmlElement(name = "answer")
+    private String answer;
 }
