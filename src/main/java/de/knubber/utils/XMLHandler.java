@@ -5,8 +5,10 @@ import de.knubber.models.Quiz;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import java.io.InputStream;
+import java.io.StringWriter;
 
 public class XMLHandler {
 
@@ -24,6 +26,34 @@ public class XMLHandler {
             }
         } catch (JAXBException e) {
             e.printStackTrace();
+        }
+
+    }
+
+
+    public static String convertQuizToXMLString(Quiz quiz) {
+        try {
+            // Erstelle ein JAXBContext für die Quiz-Klasse
+            JAXBContext context = JAXBContext.newInstance(Quiz.class);
+
+            // Erstelle einen Marshaller
+            Marshaller marshaller = context.createMarshaller();
+
+            // Optional: Formatierung für schöneres XML (lesbar)
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+
+            // StringWriter, um den XML-String zu speichern
+            StringWriter stringWriter = new StringWriter();
+
+            // Serialisiere das Quiz-Objekt in den StringWriter
+            marshaller.marshal(quiz, stringWriter);
+
+            // Gibt den generierten XML-String zurück
+            return stringWriter.toString();
+
+        } catch (JAXBException e) {
+            e.printStackTrace();
+            return null;
         }
     }
 }

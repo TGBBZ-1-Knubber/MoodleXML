@@ -9,6 +9,12 @@ import java.util.List;
 @Setter
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Question {
+    @XmlElement(name = "category")
+    private Category category;
+
+    @XmlElement(name = "info")
+    private Info info;
+
     @XmlAttribute(name = "type")
     private String type;
 
