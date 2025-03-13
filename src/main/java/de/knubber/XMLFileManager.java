@@ -26,7 +26,6 @@ public class XMLFileManager {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(400, 300);
         frame.setLayout(new BorderLayout());
-
         listModel = new DefaultListModel<>();
         filePathMap = new HashMap<>();
         JList<String> fileList = new JList<>(listModel);

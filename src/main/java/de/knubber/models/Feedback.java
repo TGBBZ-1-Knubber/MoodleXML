@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.*;
 @Getter
 @Setter
 @XmlAccessorType(XmlAccessType.FIELD)
-public class Feedback {
+public class    Feedback {
     @XmlElement(name = "text")
     private String text;
 }
