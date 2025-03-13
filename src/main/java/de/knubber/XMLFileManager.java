@@ -46,7 +46,6 @@ public class XMLFileManager {
             }
         });
 
-
         JButton uploadButton = new JButton("Upload XML File");
         uploadButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
@@ -86,7 +85,15 @@ public class XMLFileManager {
             }
         });
         searchField.setPreferredSize(new Dimension(200, 30)); // Feste Größe für bessere Sichtbarkeit
-        searchField.addActionListener(e -> searchList(searchField.getText()));
+
+        // KeyListener für das Suchfeld hinzufügen
+        searchField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                // Sobald eine Taste losgelassen wird, die Liste filtern
+                searchList(searchField.getText());
+            }
+        });
 
         // Panel für oberen Bereich (Button + Suchfeld)
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -99,7 +106,6 @@ public class XMLFileManager {
 
         loadFilePathsFromDatabase();
         frame.setVisible(true);
-
     }
 
     private void saveFilePathToDatabase(String filePath) {
@@ -139,24 +145,20 @@ public class XMLFileManager {
     private void searchList(String text) {
         listModel.clear(); // Liste vorher leeren, damit die Ergebnisse nicht doppelt erscheinen
 
-        String query = "SELECT file_path FROM uploaded_files WHERE file_path ILIKE ?";
+        if (text.isEmpty() || text.equals("Suchen")) {
+            // Wenn der Suchtext leer oder "Suchen" ist, lade alle Dateien erneut
+            loadFilePathsFromDatabase();
+            return;
+        }
 
-        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-
-            stmt.setString(1, "%" + text + "%"); // Platzhalter korrekt setzen
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                String filePath = rs.getString("file_path");
-                String fileName = new File(filePath).getName();
+        // Filter für die Liste, die Elemente basierend auf dem Suchtext anzeigt
+        for (Map.Entry<String, String> entry : filePathMap.entrySet()) {
+            String fileName = entry.getKey();
+            if (fileName.toLowerCase().contains(text.toLowerCase())) {
                 listModel.addElement(fileName);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
-
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(XMLFileManager::new);
