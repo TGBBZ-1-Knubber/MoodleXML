@@ -8,7 +8,6 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +18,6 @@ public class XMLFileManager {
     private static final String DB_URL = "jdbc:postgresql://localhost:5432/xmldb";
     private static final String DB_USER = "postgres";
     private static final String DB_PASSWORD = "start123";
-    JTextField searchField = new JTextField();
 
     public XMLFileManager() {
         JFrame frame = new JFrame("XML File Manager");
@@ -62,16 +60,14 @@ public class XMLFileManager {
                 }
             }
         });
-
-        // Suchfeld
-        searchField = new JTextField("Suchen", 15);
-        searchField.setForeground(Color.GRAY); // Grauer Platzhaltertext
+         var searchField = new JTextField("Suchen", 15);
+        searchField.setForeground(Color.GRAY);
         searchField.addFocusListener(new FocusListener() {
             @Override
             public void focusGained(FocusEvent e) {
                 if (searchField.getText().equals("Suchen") && searchField.getForeground().equals(Color.GRAY)) {
                     searchField.setText("");
-                    searchField.setForeground(Color.BLACK); // Normaler Text
+                    searchField.setForeground(Color.BLACK);
                 }
             }
 
@@ -79,27 +75,20 @@ public class XMLFileManager {
             public void focusLost(FocusEvent e) {
                 if (searchField.getText().isEmpty()) {
                     searchField.setText("Suchen");
-                    searchField.setForeground(Color.GRAY); // Platzhalterfarbe wieder setzen
+                    searchField.setForeground(Color.GRAY);
                 }
             }
         });
-        searchField.setPreferredSize(new Dimension(200, 30)); // Feste Größe für bessere Sichtbarkeit
-
-        // KeyListener für das Suchfeld hinzufügen
+        searchField.setPreferredSize(new Dimension(200, 30));
         searchField.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
-                // Sobald eine Taste losgelassen wird, die Liste filtern
                 searchList(searchField.getText());
             }
         });
-
-        // Panel für oberen Bereich (Button + Suchfeld)
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         topPanel.add(uploadButton);
         topPanel.add(searchField);
-
-        // Komponenten zum Frame hinzufügen
         frame.add(topPanel, BorderLayout.NORTH);
         frame.add(scrollPane, BorderLayout.CENTER);
 
@@ -142,15 +131,11 @@ public class XMLFileManager {
     }
 
     private void searchList(String text) {
-        listModel.clear(); // Liste vorher leeren, damit die Ergebnisse nicht doppelt erscheinen
-
+        listModel.clear();
         if (text.isEmpty() || text.equals("Suchen")) {
-            // Wenn der Suchtext leer oder "Suchen" ist, lade alle Dateien erneut
             loadFilePathsFromDatabase();
             return;
         }
-
-        // Filter für die Liste, die Elemente basierend auf dem Suchtext anzeigt
         for (Map.Entry<String, String> entry : filePathMap.entrySet()) {
             String fileName = entry.getKey();
             if (fileName.toLowerCase().contains(text.toLowerCase())) {
