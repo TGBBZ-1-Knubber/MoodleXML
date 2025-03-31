@@ -33,22 +33,11 @@ public class XMLHandler {
 
     public static String convertQuizToXMLString(Quiz quiz) {
         try {
-            // Erstelle ein JAXBContext für die Quiz-Klasse
             JAXBContext context = JAXBContext.newInstance(Quiz.class);
-
-            // Erstelle einen Marshaller
             Marshaller marshaller = context.createMarshaller();
-
-            // Optional: Formatierung für schöneres XML (lesbar)
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-
-            // StringWriter, um den XML-String zu speichern
             StringWriter stringWriter = new StringWriter();
-
-            // Serialisiere das Quiz-Objekt in den StringWriter
             marshaller.marshal(quiz, stringWriter);
-
-            // Gibt den generierten XML-String zurück
             return stringWriter.toString();
 
         } catch (JAXBException e) {
