@@ -8,7 +8,6 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,14 +18,12 @@ public class XMLFileManager {
     private static final String DB_URL = "jdbc:postgresql://localhost:5432/xmldb";
     private static final String DB_USER = "postgres";
     private static final String DB_PASSWORD = "start123";
-    JTextField searchField = new JTextField();
 
     public XMLFileManager() {
         JFrame frame = new JFrame("XML File Manager");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(400, 300);
         frame.setLayout(new BorderLayout());
-
         listModel = new DefaultListModel<>();
         filePathMap = new HashMap<>();
         JList<String> fileList = new JList<>(listModel);
@@ -46,7 +43,6 @@ public class XMLFileManager {
             }
         });
 
-
         JButton uploadButton = new JButton("Upload XML File");
         uploadButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
@@ -64,16 +60,14 @@ public class XMLFileManager {
                 }
             }
         });
-
-        // Suchfeld
-        searchField = new JTextField("Suchen", 15);
-        searchField.setForeground(Color.GRAY); // Grauer Platzhaltertext
+         var searchField = new JTextField("Suchen", 15);
+        searchField.setForeground(Color.GRAY);
         searchField.addFocusListener(new FocusListener() {
             @Override
             public void focusGained(FocusEvent e) {
                 if (searchField.getText().equals("Suchen") && searchField.getForeground().equals(Color.GRAY)) {
                     searchField.setText("");
-                    searchField.setForeground(Color.BLACK); // Normaler Text
+                    searchField.setForeground(Color.BLACK);
                 }
             }
 
@@ -81,25 +75,25 @@ public class XMLFileManager {
             public void focusLost(FocusEvent e) {
                 if (searchField.getText().isEmpty()) {
                     searchField.setText("Suchen");
-                    searchField.setForeground(Color.GRAY); // Platzhalterfarbe wieder setzen
+                    searchField.setForeground(Color.GRAY);
                 }
             }
         });
-        searchField.setPreferredSize(new Dimension(200, 30)); // Feste Größe für bessere Sichtbarkeit
-        searchField.addActionListener(e -> searchList(searchField.getText()));
-
-        // Panel für oberen Bereich (Button + Suchfeld)
+        searchField.setPreferredSize(new Dimension(200, 30));
+        searchField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                searchList(searchField.getText());
+            }
+        });
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         topPanel.add(uploadButton);
         topPanel.add(searchField);
-
-        // Komponenten zum Frame hinzufügen
         frame.add(topPanel, BorderLayout.NORTH);
         frame.add(scrollPane, BorderLayout.CENTER);
 
         loadFilePathsFromDatabase();
         frame.setVisible(true);
-
     }
 
     private void saveFilePathToDatabase(String filePath) {
@@ -137,26 +131,18 @@ public class XMLFileManager {
     }
 
     private void searchList(String text) {
-        listModel.clear(); // Liste vorher leeren, damit die Ergebnisse nicht doppelt erscheinen
-
-        String query = "SELECT file_path FROM uploaded_files WHERE file_path ILIKE ?";
-
-        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-
-            stmt.setString(1, "%" + text + "%"); // Platzhalter korrekt setzen
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                String filePath = rs.getString("file_path");
-                String fileName = new File(filePath).getName();
+        listModel.clear();
+        if (text.isEmpty() || text.equals("Suchen")) {
+            loadFilePathsFromDatabase();
+            return;
+        }
+        for (Map.Entry<String, String> entry : filePathMap.entrySet()) {
+            String fileName = entry.getKey();
+            if (fileName.toLowerCase().contains(text.toLowerCase())) {
                 listModel.addElement(fileName);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
-
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(XMLFileManager::new);
