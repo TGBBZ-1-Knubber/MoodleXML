@@ -1,15 +1,16 @@
 package de.knubber.utils;
 
-import de.knubber.models.*;
+import de.knubber.models.Answer;
+import de.knubber.models.Question;
+import de.knubber.models.Quiz;
 
 import javax.swing.*;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.xml.bind.*;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.io.InputStream;
+import java.awt.event.*;
+import java.io.*;
 import java.util.List;
 
 public class XMLHandler {
@@ -20,113 +21,85 @@ public class XMLHandler {
             Unmarshaller unmarshaller = context.createUnmarshaller();
             Quiz quiz = (Quiz) unmarshaller.unmarshal(inputStream);
 
-            // HTML-String für Anzeige
-            StringBuilder sb = new StringBuilder();
-            sb.append("<html><body style='width: 90%; font-size: 16px;'>");
+            DefaultMutableTreeNode root = new DefaultMutableTreeNode("Quiz Fragen");
 
             for (Question q : quiz.getQuestions()) {
-                sb.append("<h2>Fragetyp: ").append(q.getType()).append("</h2>");
+                String questionTitle = q.getName() != null ? q.getName().getText() : "❌ Name fehlt!";
+                DefaultMutableTreeNode questionNode = new DefaultMutableTreeNode("<html><b>Fragename:</b> " + questionTitle + "</html>");
+                questionNode.add(new DefaultMutableTreeNode("<html><b>Fragetyp:</b> " + q.getType() + "</html>"));
+                questionNode.add(new DefaultMutableTreeNode("<html><b>Fragetext:</b> " + (q.getQuestionText() != null ? q.getQuestionText().getText() : "❌ Fragetext fehlt!") + "</html>"));
 
-                // Kategorie
-                if (q.getCategory() != null && q.getCategory().getText() != null) {
-                    sb.append("<p><b>Kategorie:</b> ").append(q.getCategory().getText()).append("</p>");
-                }
-
-                // Frage-Name
-                sb.append("<p><b>Fragename:</b> ")
-                        .append(q.getName() != null ? q.getName().getText() : "❌ Name fehlt!")
-                        .append("</p>");
-
-                // Frage-Text
-                sb.append("<p><b>Fragetext:</b><br>")
-                        .append(q.getQuestionText() != null ? q.getQuestionText().getText() : "❌ Fragetext fehlt!")
-                        .append("</p>");
-
-                // Info-Text
                 if (q.getInfo() != null && q.getInfo().getText() != null) {
-                    sb.append("<p><b>Info:</b> ").append(q.getInfo().getText()).append("</p>");
+                    questionNode.add(new DefaultMutableTreeNode("<html><b>Info:</b> " + q.getInfo().getText() + "</html>"));
                 }
 
-                // Antworten
+                DefaultMutableTreeNode answersNode = new DefaultMutableTreeNode("Antworten");
                 List<Answer> answers = q.getAnswers();
                 if (answers != null && !answers.isEmpty()) {
-                    sb.append("<p><b>Antworten:</b></p><ul>");
                     for (Answer a : answers) {
-                        sb.append("<li>")
-                                .append(a.getText() != null ? a.getText() : "❌ Antworttext fehlt!")
-                                .append(a.getFraction() != null && a.getFraction() > 0 ? " ✅" : " ❌");
-
+                        String answerText = "<html>" + (a.getText() != null ? a.getText() : "❌ Antworttext fehlt!") + (a.getFraction() != null && a.getFraction() > 0 ? " ✅" : " ❌") + "</html>";
+                        DefaultMutableTreeNode answerNode = new DefaultMutableTreeNode(answerText);
                         if (a.getFeedback() != null && a.getFeedback().getText() != null) {
-                            sb.append("<br><i>Feedback: ").append(a.getFeedback().getText()).append("</i>");
+                            answerNode.add(new DefaultMutableTreeNode("<html><i>Feedback:</i> " + a.getFeedback().getText() + "</html>"));
                         }
-
-                        sb.append("</li>");
+                        answersNode.add(answerNode);
                     }
-                    sb.append("</ul>");
                 } else {
-                    sb.append("<p><b>Antworten:</b> ❌ Keine Antworten vorhanden!</p>");
+                    answersNode.add(new DefaultMutableTreeNode("❌ Keine Antworten vorhanden!"));
                 }
+                questionNode.add(answersNode);
 
-                // Subfragen
-                List<SubQuestion> subQuestions = q.getSubQuestions();
-                if (subQuestions != null && !subQuestions.isEmpty()) {
-                    sb.append("<p><b>Subfragen:</b></p><ul>");
-                    for (SubQuestion sq : subQuestions) {
-                        sb.append("<li><b>Frage:</b> ")
-                                .append(sq.getText() != null ? sq.getText() : "❌ Fehlende Subfrage")
-                                .append("<br><b>Antwort:</b> ")
-                                .append(sq.getAnswer() != null ? sq.getAnswer() : "❌ Fehlende Antwort")
-                                .append("</li>");
-                    }
-                    sb.append("</ul>");
-                }
-
-                // Feedback
-                if (q.getCorrectFeedback() != null && q.getCorrectFeedback().getText() != null) {
-                    sb.append("<p><b>Feedback (korrekt):</b> ").append(q.getCorrectFeedback().getText()).append("</p>");
-                }
-                if (q.getIncorrectFeedback() != null && q.getIncorrectFeedback().getText() != null) {
-                    sb.append("<p><b>Feedback (falsch):</b> ").append(q.getIncorrectFeedback().getText()).append("</p>");
-                }
-                if (q.getPartiallyCorrectFeedback() != null && q.getPartiallyCorrectFeedback().getText() != null) {
-                    sb.append("<p><b>Feedback (teilweise korrekt):</b> ").append(q.getPartiallyCorrectFeedback().getText()).append("</p>");
-                }
-
-                // Tags
-                if (q.getTags() != null && q.getTags().getTags() != null && !q.getTags().getTags().isEmpty()) {
-                    sb.append("<p><b>Tags:</b> ");
-                    for (Tag tag : q.getTags().getTags()) {
-                        sb.append(tag.getText()).append(", ");
-                    }
-                    sb.setLength(sb.length() - 2);
-                    sb.append("</p>");
-                }
-
-                sb.append("<hr>");
+                root.add(questionNode);
             }
 
-            sb.append("</body></html>");
+            JTree tree = new JTree(new DefaultTreeModel(root));
+            tree.setRootVisible(true);
 
-            // Bildschirmgröße ermitteln
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
             int width = (int) screenSize.getWidth();
             int height = (int) screenSize.getHeight();
 
-            // Fenster erstellen
-            JFrame frame = new JFrame("Quiz Fragen (Vollbild)");
+            JFrame frame = new JFrame("Quiz Fragen");
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             frame.setSize(width, height);
-            frame.setLocationRelativeTo(null); // Zentrieren
+            frame.setLocationRelativeTo(null);
 
-            // Label mit HTML-Inhalt
-            JLabel label = new JLabel(sb.toString());
-            label.setVerticalAlignment(SwingConstants.TOP);
-
-            // Scrollpane für lange Inhalte
-            JScrollPane scrollPane = new JScrollPane(label);
+            JScrollPane scrollPane = new JScrollPane(tree);
             frame.add(scrollPane, BorderLayout.CENTER);
 
-            // Schließen mit ESC-Taste
+            JButton exportButton = new JButton("Exportieren");
+            exportButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    JFileChooser fileChooser = new JFileChooser();
+                    fileChooser.setDialogTitle("Speichern als XML");
+                    fileChooser.setSelectedFile(new File("quiz.xml")); // Standardname setzen
+                    int result = fileChooser.showSaveDialog(frame);
+                    if (result == JFileChooser.APPROVE_OPTION) {
+                        File file = fileChooser.getSelectedFile();
+
+                        if (!file.getName().toLowerCase().endsWith(".xml")) {
+                            file = new File(file.getAbsolutePath() + ".xml");
+                        }
+
+                        try {
+                            JAXBContext context = JAXBContext.newInstance(Quiz.class);
+                            Marshaller marshaller = context.createMarshaller();
+                            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+                            marshaller.marshal(quiz, file);
+                            JOptionPane.showMessageDialog(frame, "Die Datei wurde erfolgreich exportiert.", "Erfolg", JOptionPane.INFORMATION_MESSAGE);
+                        } catch (JAXBException ex) {
+                            JOptionPane.showMessageDialog(frame, "Fehler beim Exportieren der Datei: " + ex.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+                            ex.printStackTrace();
+                        }
+                    }
+                }
+            });
+
+            JPanel buttonPanel = new JPanel();
+            buttonPanel.add(exportButton);
+            frame.add(buttonPanel, BorderLayout.NORTH);
+
             frame.addKeyListener(new KeyAdapter() {
                 @Override
                 public void keyPressed(KeyEvent e) {
