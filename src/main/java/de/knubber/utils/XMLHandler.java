@@ -1,16 +1,14 @@
 package de.knubber.utils;
 
-import de.knubber.models.Answer;
-import de.knubber.models.Question;
-import de.knubber.models.Quiz;
+import de.knubber.models.*;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.xml.bind.*;
 import java.awt.*;
-import java.awt.event.*;
 import java.io.*;
+import java.util.Base64;
 import java.util.List;
 
 public class XMLHandler {
@@ -27,88 +25,35 @@ public class XMLHandler {
                 String questionTitle = q.getName() != null ? q.getName().getText() : "❌ Name fehlt!";
                 DefaultMutableTreeNode questionNode = new DefaultMutableTreeNode("<html><b>Fragename:</b> " + questionTitle + "</html>");
                 questionNode.add(new DefaultMutableTreeNode("<html><b>Fragetyp:</b> " + q.getType() + "</html>"));
-                questionNode.add(new DefaultMutableTreeNode("<html><b>Fragetext:</b> " + (q.getQuestionText() != null ? q.getQuestionText().getText() : "❌ Fragetext fehlt!") + "</html>"));
 
-                if (q.getInfo() != null && q.getInfo().getText() != null) {
-                    questionNode.add(new DefaultMutableTreeNode("<html><b>Info:</b> " + q.getInfo().getText() + "</html>"));
-                }
+                String questionText = (q.getQuestionText() != null && q.getQuestionText().getText() != null)
+                        ? q.getQuestionText().getText()
+                        : "❌ Fragetext fehlt!";
+                questionNode.add(new DefaultMutableTreeNode("<html><b>Fragetext:</b> " + questionText + "</html>"));
 
-                DefaultMutableTreeNode answersNode = new DefaultMutableTreeNode("Antworten");
-                List<Answer> answers = q.getAnswers();
-                if (answers != null && !answers.isEmpty()) {
-                    for (Answer a : answers) {
-                        String answerText = "<html>" + (a.getText() != null ? a.getText() : "❌ Antworttext fehlt!") + (a.getFraction() != null && a.getFraction() > 0 ? " ✅" : " ❌") + "</html>";
-                        DefaultMutableTreeNode answerNode = new DefaultMutableTreeNode(answerText);
-                        if (a.getFeedback() != null && a.getFeedback().getText() != null) {
-                            answerNode.add(new DefaultMutableTreeNode("<html><i>Feedback:</i> " + a.getFeedback().getText() + "</html>"));
-                        }
-                        answersNode.add(answerNode);
+                // Falls eine Datei (Bild) existiert
+                if (q.getQuestionText() != null && q.getQuestionText().getFile() != null) {
+                    FileData fileData = q.getQuestionText().getFile();
+                    ImageIcon imageIcon = decodeBase64ToImage(fileData.getContent());
+
+                    if (imageIcon != null) {
+                        DefaultMutableTreeNode imageNode = new DefaultMutableTreeNode(new ImageNode(imageIcon, fileData.getName()));
+                        questionNode.add(imageNode);
                     }
-                } else {
-                    answersNode.add(new DefaultMutableTreeNode("❌ Keine Antworten vorhanden!"));
                 }
-                questionNode.add(answersNode);
 
                 root.add(questionNode);
             }
 
             JTree tree = new JTree(new DefaultTreeModel(root));
             tree.setRootVisible(true);
-
-            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-            int width = (int) screenSize.getWidth();
-            int height = (int) screenSize.getHeight();
+            tree.setCellRenderer(new ImageTreeCellRenderer());
 
             JFrame frame = new JFrame("Quiz Fragen");
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            frame.setSize(width, height);
+            frame.setSize(800, 600);
             frame.setLocationRelativeTo(null);
-
-            JScrollPane scrollPane = new JScrollPane(tree);
-            frame.add(scrollPane, BorderLayout.CENTER);
-
-            JButton exportButton = new JButton("Exportieren");
-            exportButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    JFileChooser fileChooser = new JFileChooser();
-                    fileChooser.setDialogTitle("Speichern als XML");
-                    fileChooser.setSelectedFile(new File("quiz.xml")); // Standardname setzen
-                    int result = fileChooser.showSaveDialog(frame);
-                    if (result == JFileChooser.APPROVE_OPTION) {
-                        File file = fileChooser.getSelectedFile();
-
-                        if (!file.getName().toLowerCase().endsWith(".xml")) {
-                            file = new File(file.getAbsolutePath() + ".xml");
-                        }
-
-                        try {
-                            JAXBContext context = JAXBContext.newInstance(Quiz.class);
-                            Marshaller marshaller = context.createMarshaller();
-                            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-                            marshaller.marshal(quiz, file);
-                            JOptionPane.showMessageDialog(frame, "Die Datei wurde erfolgreich exportiert.", "Erfolg", JOptionPane.INFORMATION_MESSAGE);
-                        } catch (JAXBException ex) {
-                            JOptionPane.showMessageDialog(frame, "Fehler beim Exportieren der Datei: " + ex.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
-                            ex.printStackTrace();
-                        }
-                    }
-                }
-            });
-
-            JPanel buttonPanel = new JPanel();
-            buttonPanel.add(exportButton);
-            frame.add(buttonPanel, BorderLayout.NORTH);
-
-            frame.addKeyListener(new KeyAdapter() {
-                @Override
-                public void keyPressed(KeyEvent e) {
-                    if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                        frame.dispose();
-                    }
-                }
-            });
-
+            frame.add(new JScrollPane(tree), BorderLayout.CENTER);
             frame.setVisible(true);
 
         } catch (JAXBException e) {
@@ -116,4 +61,17 @@ public class XMLHandler {
             e.printStackTrace();
         }
     }
+
+
+    private static ImageIcon decodeBase64ToImage(String base64) {
+        try {
+            byte[] imageBytes = Base64.getDecoder().decode(base64);
+            return new ImageIcon(imageBytes);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
 }

@@ -10,4 +10,6 @@ import javax.xml.bind.annotation.*;
 public class QuestionText {
     @XmlElement(name = "text")
     private String text;
+    @XmlElement(name = "file")
+    private FileData file;
 }
